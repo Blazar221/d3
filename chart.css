@@ -1,3 +1,11 @@
 svg {
     background-color: pink;
 }
+
+.bar {
+    fill: navy
+}
+
+.bar:hover {
+    fill: lightblue
+}
