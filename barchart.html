@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="./chart.css">
+</head>
+
+<body>
+    <!-- <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script> -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <div id="container">
+        <div id="title">United States GDP</div>
+        <div id="chart"></div>
+    </div>
+    <script>
+        const height = 300
+        const width = 500
+        const padding = 50
+
+        const chart = d3.select("body").select("#container").select("#chart")
+
+        window.onload = () => {
+            fetch('https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json')
+                .then(response => response.json())
+                .then(data => {
+                    initChart(data.data)
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        const initChart = (data) => {
+            // This is time like "1949-04-01"
+
+            const dates = data.map(each => {
+                return d3.timeParse("%Y-%m-%d")(each[0])
+            })
+
+            const xScaler = d3.scaleTime()
+                .domain(d3.extent(dates))
+                .range([padding, width - padding])
+
+            const yScaler = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d[1])])
+                .range([height - padding, padding])
+
+            debugger
+
+            const svg = chart.append("svg")
+
+            svg.attr("width", width).attr("height", height)
+
+            const xAxis = d3.axisBottom(xScaler)
+            const yAxis = d3.axisLeft(yScaler)
+
+            svg.append("g")
+                .attr("transform", "translate(0," + (height - padding) + ")")
+                .call(xAxis);
+            svg.append("g")
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yAxis);
+        }
+    </script>
+</body>
+
+</html>
