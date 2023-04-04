@@ -9,3 +9,10 @@ svg {
 .bar:hover {
     fill: lightblue
 }
+
+#tooltip {
+    position: absolute;
+    top: 320px;
+    left: 60px;
+    opacity: 1;
+}
