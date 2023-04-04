@@ -84,11 +84,32 @@
                 .attr("data-date", d => d[0])
                 .attr("data-gdp", d => d[1])
                 .on("mouseover", (e, d) => {
-                    tooltip.style("opacity", 0.9)
+                    const seasonDate = d3.timeParse("%Y-%m-%d")(d[0])
+                    let season = undefined
+                    switch (seasonDate.getMonth()) {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            season = "Q1"
+                            break
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                            season = "Q2"
+                            break
+                        default:
+                            season = "Q3"
+                            break
+                    }
+                    tooltip.attr("data-date", d[0])
+                        .style("opacity", 0.9)
                         .style("left", (60 + d[2] * barWidth) + "px")
+                    tooltip.html(seasonDate.getFullYear() + season + "<br>$" + d[1] +" Billion")
                 })
                 .on("mouseout", () => {
-                    tooltip.style("opacity", 1)
+                    tooltip.style("opacity", 0)
                         .style("left", "60px")
                 })
         }

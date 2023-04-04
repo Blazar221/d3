@@ -12,7 +12,9 @@ svg {
 
 #tooltip {
     position: absolute;
+    background-color: aliceblue;
+    padding: 20px;
     top: 320px;
     left: 60px;
-    opacity: 1;
+    opacity: 0;
 }
