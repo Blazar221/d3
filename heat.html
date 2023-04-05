@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="./chart.css">
+</head>
+
+<body>
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <div id="container">
+        <div id="title">United States GDP</div>
+        <div id="chart"></div>
+        <div id="tooltip">This is tooltip</div>
+    </div>
+    <script>
+        const height = 460
+        const width = 900
+        const padding = 60
+
+        const chart = d3.select("body").select("#container").select("#chart")
+        const tooltip = d3.select("body").select("#tooltip")
+
+        const dataUrl = "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json"
+
+        window.onload = () => {
+            fetch(dataUrl)
+                .then(response => response.json())
+                .then(data => {
+                    initChart(data)
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        const initChart = (data) => {
+            const heatData = data["monthlyVariance"]
+            const heatBase = data["baseTemperature"]
+
+            const formatX = (x) => {
+                return d3.timeParse("%Y")(x)
+            }
+
+            const years = heatData.map(each => {
+                return formatX(each["year"])
+            })
+
+            debugger
+
+            const xScale = d3.scaleTime()
+                .domain(d3.extent(years))
+                .range([padding, width - padding])
+
+            const yScale = d3.scaleBand()
+                .domain(d3.range(1, 13))
+                .range([padding, height - padding])
+
+            const svg = chart.append("svg")
+
+            svg.attr("width", width).attr("height", height)
+
+            const xAxis = d3.axisBottom(xScale)
+            // Create the y-axis
+            const yAxis = d3.axisLeft(yScale)
+                .tickFormat(function (d) {
+                    // Use an array of month names as tick labels
+                    var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    return monthNames[d - 1];
+                });
+
+            svg.append("g")
+                .attr("id", "x-axis")
+                .attr("transform", "translate(0," + (height - padding) + ")")
+                .call(xAxis);
+            svg.append("g")
+                .attr("id", "y-axis")
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yAxis)
+
+            const getHeatColor = (heat) => {
+                debugger
+                if (heat <= 2.8) {
+                    return "#FFFFFF"
+                }
+                else if (heat > 2.8 && heat <= 3.9) {
+                    return "#4575B4"
+                }
+                else if (heat > 3.9 && heat <= 5.0) {
+                    return "#74ADD1"
+                }
+                else if (heat > 5.0 && heat <= 6.1) {
+                    return "#ABD9E9"
+                }
+                else if (heat > 6.1 && heat <= 7.2) {
+                    return "#E0F3F8"
+                }
+                else if (heat > 7.2 && heat <= 8.3) {
+                    return "#FFFFBF"
+                }
+                else if (heat > 8.3 && heat <= 9.5) {
+                    return "#FEE090"
+                }
+                else if (heat > 9.5 && heat <= 10.6) {
+                    return "#FDAE61"
+                }
+                else if (heat > 10.6 && heat <= 11.7) {
+                    return "#F46D43"
+                }
+                else if (heat > 11.7 && heat <= 12.8) {
+                    return "#D73027"
+                }
+                else {
+                    return "#FFFFFF"
+                }
+            }
+
+
+            svg.selectAll("rect")
+                .data(heatData)
+                .enter()
+                .append("rect")
+                .attr("x", d => xScale(formatX(d["year"])))
+                .attr("y", d => yScale(d["month"]))
+                .attr("height", (height - padding * 2) / 12)
+                .attr("width", (width - padding * 2) / (1 + Math.floor(years.length / 12)))
+                .attr("fill", d => getHeatColor(heatBase + d["variance"]))
+                .attr("class", "tile")
+                .on("mouseover", (e, d) => {
+                    //d3.select(this).attr("stroke-width", "20")
+                })
+        }
+    </script>
+</body>
+
+</html>
