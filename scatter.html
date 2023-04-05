@@ -35,18 +35,25 @@
         }
 
         const initChart = (data) => {
-            // This is time like "1949-04-01"
+            const formatX = (x) => {
+                return d3.timeParse("%Y")(x)
+            }
+
+            const formatY = (y) => {
+                return d3.timeParse("%M:%S")(y)
+            }
 
             const years = data.map(each => {
-                return d3.timeParse("%Y")(each["Year"])
+                return formatX(each["Year"])
             })
             const durations = data.map(each => {
-                return d3.timeParse("%M:%S")(each["Time"])
+                return formatY(each["Time"])
             })
 
             debugger
 
             const xScale = d3.scaleTime()
+                //.domain([formatX("1992"), d3.max(years)])
                 .domain(d3.extent(years))
                 .range([padding, width - padding])
 
@@ -61,10 +68,10 @@
             const xAxis = d3.axisBottom(xScale)
             const yAxis = d3.axisLeft(yScale).tickFormat(d => {
                 let seconds = d.getSeconds()
-                if(seconds === 0){
+                if (seconds === 0) {
                     return d.getMinutes() + ":00"
                 }
-                
+
                 return d.getMinutes() + ":" + d.getSeconds()
             });
 
@@ -76,6 +83,81 @@
                 .attr("id", "y-axis")
                 .attr("transform", "translate(" + padding + ",0)")
                 .call(yAxis)
+
+            const dopingColor = "#DC143C"
+            const undopingColor = "#00FF7F"
+
+            const generateTooltip = (d) => {
+                let ans = d["Name"] + ":" + d["Nationality"] + "<br> Year:" + d["Year"]
+                + ", Time:" + d["Time"]
+                if(d["Doping"]){
+                    ans += "<br><br>" + d["Doping"]
+                }
+                debugger
+                return ans
+            }
+
+            svg.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("r", 5)
+                .attr("cx", d => {
+                    return xScale(formatX(d["Year"]))
+                })
+                .attr("cy", d => {
+                    return yScale(formatY(d["Time"]))
+                })
+                .attr("fill", (d) => {
+                    return d["Doping"] ? dopingColor : undopingColor
+                })
+                .attr("class", "dot")
+                .attr("data-xvalue", d => d["Year"])
+                .attr("data-yvalue", d => formatY(d["Time"]))
+                .on("mouseover", (e, d) => {
+                    tooltip.attr("data-year", d["Year"])
+                        .style("opacity", 0.9)
+                        .style("left", 15 + xScale(formatX(d["Year"])) + "px")
+                        .style("top", 15 + yScale(formatY(d["Time"])) + "px")
+                    tooltip.html(generateTooltip(d))
+                })
+                .on("mouseout", () => {
+                    tooltip.style("opacity", 0)
+                        .style("left", "-300px")
+                        .style("top", "-300px")
+                })
+
+
+            const legend = svg.append("g")
+                .attr("id", "legend")
+                .attr("height", 500)
+                .attr("width", 500)
+                .attr("transform", "translate(" + width * 0.9 + ", 200)")
+
+            const label1 = legend.append("g")
+                .attr("class", "legend-label")
+            const label2 = legend.append("g")
+                .attr("class", "legend-label")
+                .attr("transform", "translate(0,20)")
+
+            label1.append("rect")
+                .attr("width", 18)
+                .attr("height", 18)
+                .attr("fill", undopingColor)
+            label1.append("text")
+                .text("No doping allegations")
+                .attr("x", -198)
+                .attr("y", 13)
+
+            label2.append("rect")
+                .attr("width", 18)
+                .attr("height", 18)
+                .attr("fill", dopingColor)
+            label2.append("text")
+                .text("Riders with doping allegations")
+                .attr("x", -198)
+                .attr("y", 13)
+
         }
     </script>
 </body>
