@@ -9,14 +9,15 @@
     <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <div id="container">
-        <div id="title">United States GDP</div>
+        <div id="title">Monthly Global Land-Surface Temperature</div>
+        <div id="description">1753 - 2015: base temperature 8.66℃</div>
         <div id="chart"></div>
         <div id="tooltip">This is tooltip</div>
     </div>
     <script>
         const height = 460
         const width = 900
-        const padding = 60
+        const padding = { top: 60, left: 60, right: 60, bottom: 150 }
 
         const chart = d3.select("body").select("#container").select("#chart")
         const tooltip = d3.select("body").select("#tooltip")
@@ -50,11 +51,11 @@
 
             const xScale = d3.scaleTime()
                 .domain(d3.extent(years))
-                .range([padding, width - padding])
+                .range([padding.left, width - padding.right])
 
             const yScale = d3.scaleBand()
                 .domain(d3.range(1, 13))
-                .range([padding, height - padding])
+                .range([padding.top, height - padding.bottom])
 
             const svg = chart.append("svg")
 
@@ -71,15 +72,14 @@
 
             svg.append("g")
                 .attr("id", "x-axis")
-                .attr("transform", "translate(0," + (height - padding) + ")")
+                .attr("transform", "translate(0," + (height - padding.bottom) + ")")
                 .call(xAxis);
             svg.append("g")
                 .attr("id", "y-axis")
-                .attr("transform", "translate(" + padding + ",0)")
+                .attr("transform", "translate(" + padding.left + ",0)")
                 .call(yAxis)
 
             const getHeatColor = (heat) => {
-                debugger
                 if (heat <= 2.8) {
                     return "#FFFFFF"
                 }
@@ -122,13 +122,57 @@
                 .append("rect")
                 .attr("x", d => xScale(formatX(d["year"])))
                 .attr("y", d => yScale(d["month"]))
-                .attr("height", (height - padding * 2) / 12)
-                .attr("width", (width - padding * 2) / (1 + Math.floor(years.length / 12)))
+                .attr("height", (height - padding.top - padding.bottom) / 12)
+                .attr("width", (width - padding.left - padding.right) / (1 + Math.floor(years.length / 12)))
                 .attr("fill", d => getHeatColor(heatBase + d["variance"]))
-                .attr("class", "tile")
+                .attr("class", "cell")
+                .attr("data-month", d => d["month"] - 1)
+                .attr("data-year", d => d["year"])
+                .attr("data-temp", d => d["variance"])
                 .on("mouseover", (e, d) => {
-                    //d3.select(this).attr("stroke-width", "20")
+                    tooltip.attr("data-year", d["year"])
+                        .style("opacity", 0.9)
+                        .style("left", 10 + xScale(formatX(d["year"])) + "px")
+                        .style("top", 10 + yScale(d["month"]) + "px")
+                    debugger
+                    tooltip.html("here")
                 })
+                .on("mouseout", () => {
+                    tooltip.style("opacity", 0)
+                        .style("left", "0px")
+                        .style("top", "0px")
+                })
+
+
+            const tickers = [2.8, 3.9, 5.0, 6.1, 7.2, 8.3, 9.5, 10.6, 11.7, 12.8]
+
+            const heatScale = d3.scaleBand()
+                .domain(tickers)
+                .range([padding.left, padding.left + 240])
+                .paddingInner(0)
+                .paddingOuter(0.5)
+
+            debugger
+            const ticGroup = svg.append("g")
+
+            ticGroup.attr("transform", "translate(0," + (height - padding.bottom / 2) + ")")
+                .attr("id", "legend")
+                .call(d3.axisBottom(heatScale))
+
+            ticGroup.selectAll("rect")
+                .data(tickers)
+                .enter()
+                .append("rect")
+                .attr("x", d => heatScale(d) + 10)
+                .attr("y", -20)
+                .attr("height", 20)
+                .attr("width", 240 / 11)
+                .attr("fill", d => {
+                    if (d < 12.8) {
+                        return getHeatColor(d + 0.1)
+                    }
+                })
+                .attr("class", "tic")
         }
     </script>
 </body>
