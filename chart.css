@@ -1,6 +1,6 @@
-svg {
+/* svg {
     background-color: pink;
-}
+} */
 
 .bar {
     fill: navy
@@ -14,8 +14,6 @@ svg {
     position: absolute;
     background-color: aliceblue;
     padding: 20px;
-    top: 320px;
-    left: 60px;
     opacity: 0;
 }
 
@@ -26,4 +24,8 @@ svg {
 
 .cell:hover {
     stroke-width: 2;
+}
+
+.label {
+    font-size: 0.5rem;
 }

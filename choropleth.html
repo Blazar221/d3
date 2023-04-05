@@ -10,8 +10,8 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <div id="container">
-        <div id="title">United States Educational Attainment</div>
-        <div id="description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</div>
+        <h2 id="title">United States Educational Attainment</h2>
+        <h3 id="description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h3>
         <div id="chart"></div>
         <div id="tooltip">This is tooltip</div>
     </div>
@@ -81,18 +81,61 @@
                 .data(topojson.feature(mapData, mapData.objects.counties).features)
                 .enter()
                 .append('path')
-                .attr("fill", d=>{
+                .attr("fill", d => {
                     const cData = findCountyData(d)
-                    if(cData){
+                    if (cData) {
                         return getColor(cData["bachelorsOrHigher"])
                     }
                     return "white"
                 })
+                .attr("class", "county")
                 .attr('d', path)
-                .attr('data-fips', function (d) {
-                    debugger
-                    return d.id;
+                .attr('data-fips', d => d.id)
+                .attr('data-education', d => {
+                    const cData = findCountyData(d)
+                    if (cData) {
+                        return cData["bachelorsOrHigher"]
+                    }
+                    return null
                 })
+                .on("mouseover", (e, d) => {
+                    const cData = findCountyData(d)
+                    tooltip.attr("data-education", cData["bachelorsOrHigher"])
+                        .style("opacity", 0.9)
+                        .style('left', e.pageX + 10 + 'px')
+                        .style('top', e.pageY - 28 + 'px');
+                    tooltip.html(cData["area_name"] + ":" + cData["bachelorsOrHigher"])
+                })
+                .on("mouseout", () => {
+                    tooltip.style("opacity", 0)
+                        .style("left", "0px")
+                        .style("top", "0px")
+                })
+
+            const tickers = [3, 12, 21, 30, 39, 48, 57, 66]
+
+            const heatScale = d3.scalePoint()
+                .domain(tickers)
+                .range([padding.left, padding.left + 240])
+
+            const ticGroup = svg.append("g")
+
+            ticGroup.attr("transform", "translate(" + (width * 0.56) + "," + padding.top + ")")
+                .attr("id", "legend")
+                .call(d3.axisBottom(heatScale).tickFormat(d => d + "%"))
+
+            ticGroup.selectAll("rect")
+                .data(tickers)
+                .enter()
+                .append("rect")
+                .attr("x", d => heatScale(d))
+                .attr("y", 0)
+                .attr("height", 5)
+                .attr("width", 240 / 7)
+                .attr("fill", d => {
+                    return getColor(d + 0.1)
+                })
+                .attr("class", "tic")
         }
     </script>
 </body>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="./chart.css">
+</head>
+
+<body>
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <div id="container">
+        <h1 id="title">Video Game Sales</h1>
+        <h3 id="description">Top 100 Most Sold Video Games Grouped by Platform</h3>
+        <div id="chart"></div>
+        <div id="tooltip">This is tooltip</div>
+    </div>
+    <script>
+        const height = 460
+        const width = 1080
+        const padding = 50
+
+        const tooltip = d3.select("body").select("#tooltip")
+
+
+        d3.json("https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json")
+            .then(data => {
+                console.log(data);
+                const root = d3.hierarchy(data).sum(d => d.value)
+                d3.treemap().size([width, height - 2 * padding]).padding(1)(root)
+
+                const getColor = (category) => {
+                    switch (category) {
+                        case "GB":
+                            return "blue"
+                        case "Wii":
+                            return "pink"
+                        default:
+                            return "orange"
+                    }
+                }
+
+                const svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                svg.selectAll("rect")
+                    .data(root.leaves())
+                    .enter()
+                    .append("rect")
+                    .attr("class", "tile")
+                    .attr("data-name", d => d.data["name"])
+                    .attr("data-category", d => d.data["category"])
+                    .attr("data-value", d => d.data["value"])
+                    .attr('x', function (d) { return d.x0; })
+                    .attr('y', function (d) { return d.y0; })
+                    .attr('width', function (d) { return d.x1 - d.x0; })
+                    .attr('height', function (d) { return d.y1 - d.y0; })
+                    .attr("fill", d => {
+                        return getColor(d.data["category"])
+                    })
+                    .on("mousemove", (event, d) => {
+                        tooltip.style("opacity", 0.9)
+                        tooltip.html(d.data.name + ":" + d.data.value)
+                            .attr("data-value", d.data.value)
+                            .style('left', event.pageX + 10 + 'px')
+                            .style('top', event.pageY - 28 + 'px');
+                    })
+                    .on("mouseout", () => {
+                        tooltip.style("opacity", 0)
+                    })
+
+                svg.selectAll("g")
+                    .data(root.leaves())
+                    .enter()
+                    .append("g")
+                    .attr("transform", d => "translate(" + (d.x0 + 10) + "," + (d.y0 + 10) + ")")
+                    .append("text")
+                    .attr("class", "label")
+                    .html(d => {
+                        debugger
+                        const ele = d.data["name"].split(new RegExp('[^a-zA-Z0-9]')).filter(e => e.length > 0)
+                        const ans = ele.map((x, i) => {
+                            return "<tspan x=0 y=" + 10 * i + ">" + x + "</tspan>"
+                        })
+                        debugger
+                        return ans.join("")
+                    })
+
+                const dopingColor = "#DC143C"
+                const undopingColor = "#00FF7F"
+
+                const legend = svg.append("g")
+                    .attr("id", "legend")
+                    .attr("height", 500)
+                    .attr("width", 500)
+                    .attr("transform", "translate(" + width * 0.5 + "," + (height - padding) + ")")
+
+                const label1 = legend.append("g")
+                    .attr("class", "legend-label")
+                const label2 = legend.append("g")
+                    .attr("class", "legend-label")
+                    .attr("transform", "translate(0,20)")
+
+                label1.append("rect")
+                    .attr("class", "legend-item")
+                    .attr("width", 18)
+                    .attr("height", 18)
+                    .attr("fill", undopingColor)
+                label1.append("text")
+                    .text("No doping allegations")
+                    .attr("x", -198)
+                    .attr("y", 13)
+
+                label2.append("rect")
+                    .attr("class", "legend-item")
+                    .attr("width", 18)
+                    .attr("height", 18)
+                    .attr("fill", dopingColor)
+                label2.append("text")
+                    .text("Riders with doping allegations")
+                    .attr("x", -198)
+                    .attr("y", 13)
+            }).catch(err => console.log(err))
+
+
+
+    </script>
+</body>
+
+</html>
