@@ -10,8 +10,8 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <div id="container">
-        <div id="title">Monthly Global Land-Surface Temperature</div>
-        <div id="description">1753 - 2015: base temperature 8.66℃</div>
+        <div id="title">United States Educational Attainment</div>
+        <div id="description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</div>
         <div id="chart"></div>
         <div id="tooltip">This is tooltip</div>
     </div>
@@ -23,32 +23,76 @@
         const chart = d3.select("body").select("#container").select("#chart")
         const tooltip = d3.select("body").select("#tooltip")
 
-        const dataUrl = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json"
+        const mapUrl = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json"
+        const educationUrl = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json"
 
-        window.onload = () => {
-            fetch(dataUrl)
-                .then(response => response.json())
-                .then(data => {
-                    initChart(data)
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
 
-        const initChart = (data) => {
+        Promise.all([d3.json(mapUrl), d3.json(educationUrl)])
+            .then(data => initChart(data[0], data[1]))
+            .catch(err => console.log(err));
+
+        const initChart = (mapData, data) => {
             const path = d3.geoPath()
+            debugger
 
             const svg = d3.select("body").append("svg").attr("width", width).attr("height", height)
-            debugger
+
+            const findCountyData = (d) => {
+                const result = data.filter(each => each.fips === d.id);
+                if (result && result[0]) {
+                    return result[0]
+                }
+                return null
+            }
+
+            const getColor = (percentage) => {
+                if (percentage <= 3) {
+                    return "#FFFFFF"
+                }
+                else if (percentage > 3 && percentage <= 12) {
+                    return "#4575B4"
+                }
+                else if (percentage > 12 && percentage <= 21) {
+                    return "#74ADD1"
+                }
+                else if (percentage > 21 && percentage <= 30) {
+                    return "#ABD9E9"
+                }
+                else if (percentage > 30 && percentage <= 39) {
+                    return "#E0F3F8"
+                }
+                else if (percentage > 39 && percentage <= 48) {
+                    return "#FFFFBF"
+                }
+                else if (percentage > 48 && percentage <= 57) {
+                    return "#FEE090"
+                }
+                else if (percentage > 57 && percentage <= 66) {
+                    return "#FDAE61"
+                }
+                else {
+                    return "#FFFFFF"
+                }
+            }
+
             svg.append('g')
                 .attr('class', 'counties')
                 .selectAll('path')
-                .data(topojson.feature(data, data.objects.counties).features)
+                .data(topojson.feature(mapData, mapData.objects.counties).features)
                 .enter()
                 .append('path')
-                .attr("fill", "navy")
+                .attr("fill", d=>{
+                    const cData = findCountyData(d)
+                    if(cData){
+                        return getColor(cData["bachelorsOrHigher"])
+                    }
+                    return "white"
+                })
                 .attr('d', path)
+                .attr('data-fips', function (d) {
+                    debugger
+                    return d.id;
+                })
         }
     </script>
 </body>
